@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  # MongoDB Database
+  mongo:
+    image: mongo:5.0
+    container_name: mongodb-container
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - app-network
+    environment:
+      - MONGO_INITDB_DATABASE=greetingsdb
+
+  # Frontend service
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "1234:80"
+    container_name: frontend-container
+    networks:
+      - app-network
+    depends_on:
+      - backend-js
+
+  # Backend JavaScript service
+  backend-js:
+    build:
+      context: ./backend-js
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    container_name: backend-js-container
+    networks:
+      - app-network
+    depends_on:
+      - mongo
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/greetingsdb
+      - PORT=3000
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mongo-data:
